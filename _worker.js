@@ -38,13 +38,13 @@ const Utils = {
     const parts = address.split(':');
     if (parts.length < 2) throw new Error('Invalid SOCKS5 address');
     
-    const port = parseInt(parts[1], 10);
+    const port = parseInt(parts, 10);
     if (isNaN(port) || port < 1 || port > 65535) {
       throw new Error('Invalid port number');
     }
     
     return {
-      host: parts[0],
+      host: parts,
       port: port
     };
   },
@@ -97,7 +97,7 @@ class Config {
     
     try {
       const address = this.socks5Address.includes('//') 
-        ? this.socks5Address.split('//')[1] 
+        ? this.socks5Address.split('//') 
         : this.socks5Address;
       
       this.parsedSocks5Address = Utils.socks5AddressParser(address);
@@ -223,8 +223,8 @@ export default {
     const customHost = params.get('host') || 'your.domain';
     const baseUrl = `${useTLS ? 'https' : 'http'}://${customHost}`;
     
-    const configUrl = `${baseUrl}/config?uuid=${config.userID}`;
-    const proxyUrl = `${baseUrl}/proxy?uuid=${config.userID}`;
+    // 修复点：确保URL正确转义（关键修改）
+    const safeUrl = config.subConfig.replace(/"/g, '\\"');
     
     const subscription = [
       `#! 更新时间: ${new Date().toISOString()}`,
@@ -250,4 +250,7 @@ export default {
       `  - name: Proxy`,
       `    type: select`,
       `    proxies:`,
-      `      - $
+      `      - ${customHost}`,
+      '',
+      `rule-providers:`,
+ 
